@@ -5,6 +5,12 @@
       <Filter>4D Plugin API</Filter>
     </ClCompile>
     <ClCompile Include="4DPlugin-OTP.cpp" />
+    <ClCompile Include="4D Plugin API\Classes\C_BLOB.cpp" />
+    <ClCompile Include="4D Plugin API\Classes\C_LONGINT.cpp" />
+    <ClCompile Include="4D Plugin API\Classes\C_TEXT.cpp" />
+    <ClCompile Include="include\base32.c" />
+    <ClCompile Include="include\uri_encode.c" />
+    <ClCompile Include="support\4DPlugin-JSON.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="4D Plugin API\4DPluginAPI.h">
@@ -23,6 +29,13 @@
       <Filter>4D Plugin API</Filter>
     </ClInclude>
     <ClInclude Include="4DPlugin-OTP.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_BLOB.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_LONGINT.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_TEXT.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_TYPES.h" />
+    <ClInclude Include="include\base32.h" />
+    <ClInclude Include="include\uri_encode.h" />
+    <ClInclude Include="support\4DPlugin-JSON.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="4D Plugin API">

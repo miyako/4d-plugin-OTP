@@ -4,3 +4,5 @@ OTP.xcodeproj/project.xcworkspace/*
 OTP.xcodeproj/xcuserdata/*
 OTP.xcodeproj/xcshareddata/*
 test/Project/DerivedData/*
+Objs/*
+.vs/*
