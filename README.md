@@ -1,5 +1,5 @@
 # 4d-plugin-OTP
-OTP based on [tilkinsc/COTP](https://github.com/tilkinsc/COTP).
+OTP based on [paolostivanin/libcotp](https://github.com/paolostivanin/libcotp).
 
 # Example
 
