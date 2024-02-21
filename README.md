@@ -30,3 +30,4 @@ ASSERT($status.otp="912647")
 # Acknowledgements
 
 * [BASE32](https://github.com/mjg59/tpmtotp/blob/master/base32.h) by Adrien Kunysz
+* RFC3986 by [dnmfarrell/URI-Encode-C](https://github.com/dnmfarrell/URI-Encode-C) 
