@@ -53,7 +53,7 @@ $status:=OTP Generate($params)
 
 ASSERT($status.base32_secret="6CPZRIZO")
 ASSERT($status.otp="912647")
-ASSERT($status.url="otpauth://hotp/github%3Akeisuke.miyako%404d.com?issuer=github&secret=6CPZRIZO&algorithm=SHA1&digits=6&counter=0")
+ASSERT($status.url="otpauth://hotp/github%3Akeisuke.miyako%404d.com?issuer=github&secret=6CPZRIZO&algorithm=SHA1&digits=6&counter=1")
 
 SET PICTURE TO PASTEBOARD($status.qr)
 ```
