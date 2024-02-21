@@ -32,10 +32,8 @@ void OTP_Generate(PA_PluginParameters params);
 static const int32_t SHA1_BYTES   = 160 / 8;    // 20
 static const int32_t SHA256_BYTES = 256 / 8;    // 32
 static const int32_t SHA512_BYTES = 512 / 8;    // 64
+static const int    powers10[] = { 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1000000000 };
 
-static int hmac_algo_sha1(const char* byte_secret, const char* byte_string, char* out);
-static int hmac_algo_sha256(const char* byte_secret, const char* byte_string, char* out);
-static int hmac_algo_sha512(const char* byte_secret, const char* byte_string, char* out);
 static uint64_t get_current_time();
 
 #endif /* PLUGIN_OTP_H */

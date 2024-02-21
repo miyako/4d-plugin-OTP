@@ -35,8 +35,6 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 
 #pragma mark -
 
-typedef int (*hmac_fn)(const char *, const char *, char *);
-
 void OTP_Generate(PA_PluginParameters params) {
 
     PA_ObjectRef options = PA_GetObjectParameter(params, 1);
@@ -47,7 +45,8 @@ void OTP_Generate(PA_PluginParameters params) {
     int digits              = 6;
     int counter             = 0;
     std::string algorithm   = "SHA1";
-    hmac_fn hmac = hmac_algo_sha1;
+    const EVP_MD *evp_md = EVP_sha1();
+    
     std::string secret;
     std::string base32_secret;
     std::string issuer;
@@ -87,10 +86,10 @@ void OTP_Generate(PA_PluginParameters params) {
         if(ob_get_s(options, L"algorithm", &stringValue)) {
             if(stringValue == (const uint8_t *)"SHA256"){
                 algorithm = "SHA256";
-                hmac = hmac_algo_sha256;
+                evp_md = EVP_sha256();
             }else if (stringValue == (const uint8_t *)"SHA512"){
                 algorithm = "SHA512";
-                hmac = hmac_algo_sha512;
+                evp_md = EVP_sha512();
             }
         }
     }
@@ -113,6 +112,7 @@ void OTP_Generate(PA_PluginParameters params) {
     std::vector<char>buf(digits+1);
     
     if(type == "totp"){
+        
         if(ob_is_defined(options, L"period")) {
             intValue = ob_get_n(options, L"period");
             if(intValue > 0){
@@ -124,9 +124,11 @@ void OTP_Generate(PA_PluginParameters params) {
         
 
         
+        
     }
     
     if(type == "hotp"){
+        
         if(ob_is_defined(options, L"counter")) {
             intValue = ob_get_n(options, L"counter");
             if(intValue > 0){
@@ -136,7 +138,37 @@ void OTP_Generate(PA_PluginParameters params) {
         
         ob_set_n(returnValue, L"counter", counter);
         
+        const int max10 = sizeof(powers10) / sizeof(*powers10);
+        const int max16 = 8;
+        
+        u_char tosign[8];
+        
+        for (int i = sizeof(tosign) - 1; i >= 0; i--) {
+                tosign[i] = counter & 0xff;
+                counter >>= 8;
+            }
 
+        u_int hash_len;
+        u_char hash[EVP_MAX_MD_SIZE];
+        
+        /* Compute HMAC */
+        HMAC(evp_md,
+             base32_secret.c_str(),
+             (int)base32_secret.length(),
+             tosign,
+             sizeof(tosign), hash, &hash_len);
+        
+        /* Extract selected bytes to get 32 bit integer value */
+        int offset = hash[hash_len - 1] & 0x0f;
+        int value = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16)
+        | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
+        
+        snprintf(&buf[0], buf.size(), "%0*d", digits < max10 ? digits : max10,
+                 digits < max10 ? value % powers10[digits - 1] : value);
+        
+        otp = (const char *)&buf[0];
+        ob_set_s(returnValue, L"otp", otp.c_str());
+        
     }
 
     PA_ReturnObject(params, returnValue);
@@ -163,55 +195,4 @@ static uint64_t get_current_time() {
 #endif
     
     return milliseconds;
-}
-
-static int hmac_algo_sha1(const char* byte_secret, const char* byte_string, char* out) {
-    
-    // Output len
-    unsigned int len = SHA1_BYTES;
-    
-    unsigned char* result = HMAC(
-        EVP_sha1(),                            // algorithm
-        (unsigned char*)byte_secret, 10,    // key
-        (unsigned char*)byte_string, 8,        // data
-        (unsigned char*)out,                // output
-        &len                                // output length
-    );
-    
-    // Return the HMAC success
-    return result == 0 ? 0 : len;
-}
-
-static int hmac_algo_sha256(const char* byte_secret, const char* byte_string, char* out) {
-    
-    // Output len
-    unsigned int len = SHA256_BYTES;
-    
-    unsigned char* result = HMAC(
-        EVP_sha256(),                        // algorithm
-        (unsigned char*)byte_secret, 10,    // key
-        (unsigned char*)byte_string, 8,        // data
-        (unsigned char*)out,                // output
-        &len                                // output length
-    );
-    
-    // Return the HMAC success
-    return result == 0 ? 0 : len;
-}
-
-static int hmac_algo_sha512(const char* byte_secret, const char* byte_string, char* out) {
-    
-    // Output len
-    unsigned int len = SHA512_BYTES;
-    
-    unsigned char* result = HMAC(
-        EVP_sha512(),                        // algorithm
-        (unsigned char*)byte_secret, 10,    // key
-        (unsigned char*)byte_string, 8,        // data
-        (unsigned char*)out,                // output
-        &len                                // output length
-    );
-    
-    // Return the HMAC success
-    return result == 0 ? 0 : len;
 }
