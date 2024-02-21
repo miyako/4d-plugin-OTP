@@ -1,18 +1,21 @@
 # 4d-plugin-OTP
 OTP.
 
+**hotp** code based on [archiecobbs/mod-authn-otp](https://github.com/archiecobbs/mod-authn-otp/tree/master)
+
 # Example
 
 ```4d
-var $params : Object
-
-$params:={secret: "😣."}
-
-$status:=OTP Generate($params)
-
-$params.type:="hotp"
+$params:={secret: "😣."; \
+type: OTP Type hotp; \
+algorithm: OTP Algorithm SHA1; \
+counter: 1; \
+digits: 6}
 
 $status:=OTP Generate($params)
+
+ASSERT($status.base32_secret="6CPZRIZO")
+ASSERT($status.otp="912647")
 ```
 
 |key|type||
