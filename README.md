@@ -26,6 +26,8 @@ ASSERT($status.otp="912647")
 |algorithm|Text|SHA1(default), SHA256, SHA512|
 |digits|Integer|6(default)|
 |period|Integer|30(default), totp only|
+|t0|Integer|0(default), totp only|
+|timestamp|Integer|default=now, totp only|
 |counter|Integer|0(default), hotp only|
 
 * QR code options
