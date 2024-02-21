@@ -23,7 +23,7 @@ ASSERT($status.otp="912647")
 |secret|Text||
 |type|Text|totp(default), hotp|
 |algorithm|Text|SHA1(default), SHA256, SHA512|
-|digits|Integer|6(default), 8|
+|digits|Integer|6(default)|
 |period|Integer|30(default), totp only|
 |counter|Integer|0(default), hotp only|
 
