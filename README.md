@@ -79,4 +79,5 @@ SET PICTURE TO PASTEBOARD($status.qr)
 # Acknowledgements
 
 * [BASE32](https://github.com/mjg59/tpmtotp/blob/master/base32.h) by Adrien Kunysz
-* RFC3986 by [dnmfarrell/URI-Encode-C](https://github.com/dnmfarrell/URI-Encode-C) 
+* RFC3986 by [dnmfarrell/URI-Encode-C](https://github.com/dnmfarrell/URI-Encode-C)
+* qrencode by [Kentaro Fukuchi](https://fukuchi.org/works/qrencode/)
