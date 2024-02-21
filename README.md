@@ -3,6 +3,10 @@ OTP.
 
 * [RFC 6238 Time-Based One-Time Password Algorithm](https://www.ietf.org/rfc/rfc6238.txt)
 * [RFC 4226 HMAC-Based One-Time Password Algorithm](https://www.ietf.org/rfc/rfc4226.txt)
+* Generate random base32 secret by [RAND_bytes](https://www.openssl.org/docs/man1.1.1/man3/RAND_bytes.html), or
+* Use existing secret, base32 or plain text (internally converted to base32)
+* Specify `X` (unix timestamp), `T0` (start time) or compute based on current time
+* Generate [key URI]([Key Uri Format](https://github.com/google/google-authenticator/wiki/Key-Uri-Format)
 * Generate QRCODE in .png or .svg format
 
 **hotp** code based on [archiecobbs/mod-authn-otp](https://github.com/archiecobbs/mod-authn-otp/tree/master)
