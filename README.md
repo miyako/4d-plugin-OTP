@@ -20,7 +20,8 @@ ASSERT($status.otp="912647")
 
 |key|type||
 |:-:|:-:|:-|
-|secret|Text||
+|secret|Text|if passed, internally encoded to base32_secret|
+|base32_secret|Text||
 |type|Text|totp(default), hotp|
 |algorithm|Text|SHA1(default), SHA256, SHA512|
 |digits|Integer|6(default)|
