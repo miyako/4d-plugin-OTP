@@ -1,0 +1,11 @@
+{
+    "name": "OTP",
+    "id": 20000,
+    "commands": [
+        {
+            "theme": "OTP",
+            "syntax": "OTP Generate(&J):J",
+            "threadSafe": true
+        }
+    ]
+}

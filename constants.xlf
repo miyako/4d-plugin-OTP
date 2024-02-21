@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<xliff version="1.0" xmlns:d4="http://www.4d.com/d4-ns">
+    <header>
+        <note>OTP</note>
+    </header>
+    <group resname="themes">
+        <trans-unit id="" resname="2ABFA57220B9486496A2127A991CF50F" translate="no">
+            <source>OTP Algorithm</source>
+        </trans-unit>
+    </group>
+    <group restype="x-4DK#" d4:groupName="2ABFA57220B9486496A2127A991CF50F">
+        <trans-unit d4:value="SHA1:S" id="2ABFA57220B9486496A2127A991CF50F.1">
+            <source>OTP Algorithm SHA1</source>
+        </trans-unit>
+        <trans-unit d4:value="SHA256:S" id="2ABFA57220B9486496A2127A991CF50F.2">
+            <source>OTP Algorithm SHA256</source>
+        </trans-unit>
+        <trans-unit d4:value="SHA512:S" id="2ABFA57220B9486496A2127A991CF50F.3">
+            <source>OTP Algorithm SHA512</source>
+        </trans-unit>
+    </group>
+    <group resname="themes">
+        <trans-unit id="" resname="E27BC18F3FA244BB8D53FBF013FA1594" translate="no">
+            <source>OTP Type</source>
+        </trans-unit>
+    </group>
+    <group restype="x-4DK#" d4:groupName="E27BC18F3FA244BB8D53FBF013FA1594">
+        <trans-unit d4:value="hotp:S" id="E27BC18F3FA244BB8D53FBF013FA1594.1">
+            <source>OTP Type hotp</source>
+        </trans-unit>
+        <trans-unit d4:value="totp:S" id="E27BC18F3FA244BB8D53FBF013FA1594.2">
+            <source>OTP Type totp</source>
+        </trans-unit>
+    </group>
+</xliff>
