@@ -28,6 +28,13 @@
 		D134D4AC1A030BA0008D14EF /* manifest.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D134D4A91A030B06008D14EF /* manifest.json */; };
 		D1734FA92B8608A800227D74 /* base32.h in Headers */ = {isa = PBXBuildFile; fileRef = D1734FA72B8608A800227D74 /* base32.h */; };
 		D1734FAA2B8608A800227D74 /* base32.c in Sources */ = {isa = PBXBuildFile; fileRef = D1734FA82B8608A800227D74 /* base32.c */; };
+		D1734FAE2B8612E300227D74 /* uri_encode.c in Sources */ = {isa = PBXBuildFile; fileRef = D1734FAC2B8612E200227D74 /* uri_encode.c */; };
+		D1734FAF2B8612E300227D74 /* uri_encode.h in Headers */ = {isa = PBXBuildFile; fileRef = D1734FAD2B8612E200227D74 /* uri_encode.h */; };
+		D1734FB22B86207500227D74 /* C_BLOB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D1734FB02B86207500227D74 /* C_BLOB.cpp */; };
+		D1734FB32B86207500227D74 /* C_BLOB.h in Headers */ = {isa = PBXBuildFile; fileRef = D1734FB12B86207500227D74 /* C_BLOB.h */; };
+		D1734FB62B8620A000227D74 /* libqrencode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1734FB52B86209300227D74 /* libqrencode.a */; };
+		D1734FB72B8620A000227D74 /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D1734FB42B86209300227D74 /* libpng16.a */; };
+		D1734FB92B8620BA00227D74 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D1734FB82B8620B200227D74 /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -68,6 +75,13 @@
 		D14D10DD1A03A8A5008B3411 /* constants.xlf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = constants.xlf; sourceTree = "<group>"; };
 		D1734FA72B8608A800227D74 /* base32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base32.h; path = include/base32.h; sourceTree = "<group>"; };
 		D1734FA82B8608A800227D74 /* base32.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = base32.c; path = include/base32.c; sourceTree = "<group>"; };
+		D1734FAC2B8612E200227D74 /* uri_encode.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = uri_encode.c; path = include/uri_encode.c; sourceTree = "<group>"; };
+		D1734FAD2B8612E200227D74 /* uri_encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uri_encode.h; path = include/uri_encode.h; sourceTree = "<group>"; };
+		D1734FB02B86207500227D74 /* C_BLOB.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = C_BLOB.cpp; path = "4D Plugin API/Classes/C_BLOB.cpp"; sourceTree = "<group>"; };
+		D1734FB12B86207500227D74 /* C_BLOB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = C_BLOB.h; path = "4D Plugin API/Classes/C_BLOB.h"; sourceTree = "<group>"; };
+		D1734FB42B86209300227D74 /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = a/libpng16.a; sourceTree = "<group>"; };
+		D1734FB52B86209300227D74 /* libqrencode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libqrencode.a; path = a/libqrencode.a; sourceTree = "<group>"; };
+		D1734FB82B8620B200227D74 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,8 +89,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1734FB72B8620A000227D74 /* libpng16.a in Frameworks */,
 				D122A6A42B85CD9B000F61DE /* libcrypto.a in Frameworks */,
 				D130064F12F02D9700702C0E /* Cocoa.framework in Frameworks */,
+				D1734FB62B8620A000227D74 /* libqrencode.a in Frameworks */,
+				D1734FB92B8620BA00227D74 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,9 +103,12 @@
 		089C166AFE841209C02AAC07 /* OTP */ = {
 			isa = PBXGroup;
 			children = (
+				D1734FAB2B8612C800227D74 /* url_encode */,
 				D1734FA62B86089D00227D74 /* base32 */,
 				D122A6A62B85CE68000F61DE /* C_LONGINT.cpp */,
 				D122A6A72B85CE68000F61DE /* C_LONGINT.h */,
+				D1734FB02B86207500227D74 /* C_BLOB.cpp */,
+				D1734FB12B86207500227D74 /* C_BLOB.h */,
 				D122A6A82B85CE68000F61DE /* C_TEXT.cpp */,
 				D122A6A92B85CE68000F61DE /* C_TEXT.h */,
 				D122A6A52B85CE68000F61DE /* C_TYPES.h */,
@@ -164,6 +184,9 @@
 		D16FBB3C22A4C07E008F0416 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D1734FB82B8620B200227D74 /* libz.tbd */,
+				D1734FB42B86209300227D74 /* libpng16.a */,
+				D1734FB52B86209300227D74 /* libqrencode.a */,
 				D122A6A32B85CD9B000F61DE /* libcrypto.a */,
 			);
 			name = Frameworks;
@@ -176,6 +199,15 @@
 				D1734FA72B8608A800227D74 /* base32.h */,
 			);
 			name = base32;
+			sourceTree = "<group>";
+		};
+		D1734FAB2B8612C800227D74 /* url_encode */ = {
+			isa = PBXGroup;
+			children = (
+				D1734FAC2B8612E200227D74 /* uri_encode.c */,
+				D1734FAD2B8612E200227D74 /* uri_encode.h */,
+			);
+			name = url_encode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -191,7 +223,9 @@
 				18B684F806944F2000CC6A1E /* EntryPoints.h in Headers */,
 				18B684F906944F2000CC6A1E /* Flags.h in Headers */,
 				D1734FA92B8608A800227D74 /* base32.h in Headers */,
+				D1734FB32B86207500227D74 /* C_BLOB.h in Headers */,
 				D122A6AA2B85CE68000F61DE /* C_TYPES.h in Headers */,
+				D1734FAF2B8612E300227D74 /* uri_encode.h in Headers */,
 				D122A6AE2B85CE68000F61DE /* C_TEXT.h in Headers */,
 				18B684FA06944F2000CC6A1E /* PrivateTypes.h in Headers */,
 				18B684FB06944F2000CC6A1E /* PublicTypes.h in Headers */,
@@ -300,9 +334,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1734FAE2B8612E300227D74 /* uri_encode.c in Sources */,
 				18B684FF06944F8800CC6A1E /* 4DPlugin-OTP.cpp in Sources */,
 				D13116A91A03ACB700DE1322 /* 4DPluginAPI.c in Sources */,
 				D122A6AD2B85CE68000F61DE /* C_TEXT.cpp in Sources */,
+				D1734FB22B86207500227D74 /* C_BLOB.cpp in Sources */,
 				D1734FAA2B8608A800227D74 /* base32.c in Sources */,
 				D122A6B22B85CEA3000F61DE /* 4DPlugin-JSON.cpp in Sources */,
 				D122A6AB2B85CE68000F61DE /* C_LONGINT.cpp in Sources */,

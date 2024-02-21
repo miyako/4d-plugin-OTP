@@ -23,6 +23,9 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 			case 1 :
 				OTP_Generate(params);
 				break;
+            case 2 :
+                OTP_Random(params);
+                break;
 
         }
 
@@ -35,6 +38,21 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 
 #pragma mark -
 
+void OTP_Random(PA_PluginParameters params) {
+    
+    PA_long32 len = PA_GetLongParameter(params, 1);
+    len = len > 0 ? len : 20;
+    std::vector<unsigned char>buf(len);
+    if (RAND_bytes(&buf[0], len) == 1){
+        std::vector<unsigned char>str(BASE32_LEN(len)+1);
+        base32_encode(&buf[0], buf.size(), &str[0]);
+        CUTF8String u8 = &str[0];
+        C_TEXT t;
+        t.setUTF8String(&u8);
+        PA_ReturnString(params, (PA_Unichar *)t.getUTF16StringPtr());
+    }
+}
+
 void OTP_Generate(PA_PluginParameters params) {
 
     PA_ObjectRef options = PA_GetObjectParameter(params, 1);
@@ -42,8 +60,9 @@ void OTP_Generate(PA_PluginParameters params) {
     
     std::string type        = "totp";
     int period              = 30;
+    int t0                  = 0;
     int digits              = 6;
-    int counter             = 0;
+    uint64_t counter        = 0;
     std::string algorithm   = "SHA1";
     const EVP_MD *evp_md = EVP_sha1();
     
@@ -51,6 +70,16 @@ void OTP_Generate(PA_PluginParameters params) {
     std::string base32_secret;
     std::string issuer;
     std::string otp;
+    std::string label;
+    std::string account;
+    std::string url = "otpauth://";
+    
+    output_type_t qr_type = QR_OUTPUT_PNG;
+    int margin = 0;
+    int size = 3;
+    int dpi = 72;
+    int version = 1;
+    QRecLevel level = QR_ECLEVEL_L;
     
     CUTF8String stringValue;
     
@@ -71,6 +100,24 @@ void OTP_Generate(PA_PluginParameters params) {
     }
     
     ob_set_s(returnValue, L"base32_secret", base32_secret.c_str());
+    
+    if(ob_is_defined(options, L"account")) {
+        if(ob_get_s(options, L"account", &stringValue)) {
+            account = (const char *)stringValue.c_str();
+            ob_set_s(returnValue, L"account", account.c_str());
+            label = account;
+        }
+    }
+        
+    if(ob_is_defined(options, L"issuer")) {
+        if(ob_get_s(options, L"issuer", &stringValue)) {
+            issuer = (const char *)stringValue.c_str();
+            ob_set_s(returnValue, L"issuer", issuer.c_str());
+            if(account.length()){
+                label = issuer + ":" + account;
+            }
+        }
+    }
     
     if(ob_is_defined(options, L"type")) {
         if(ob_get_s(options, L"type", &stringValue)) {
@@ -110,6 +157,7 @@ void OTP_Generate(PA_PluginParameters params) {
     ob_set_n(returnValue, L"digits", digits);
     
     std::vector<char>buf(digits+1);
+    const int max10 = sizeof(powers10) / sizeof(*powers10);
     
     if(type == "totp"){
         
@@ -121,10 +169,28 @@ void OTP_Generate(PA_PluginParameters params) {
         }
         
         ob_set_n(returnValue, L"period", period);
-        
 
+        if(ob_is_defined(options, L"t0")) {
+            intValue = ob_get_n(options, L"t0");
+            if(intValue > 0){
+                t0 = intValue;
+            }
+        }
         
+        ob_set_n(returnValue, L"t0", t0);
+
+        time_t timestamp = time(NULL);
         
+        if(ob_is_defined(options, L"timestamp")) {
+            intValue = ob_get_n(options, L"timestamp");
+            if(intValue > 0){
+                timestamp = intValue;
+            }
+        }
+
+        counter = (timestamp - t0) / period;
+        
+        ob_set_n(returnValue, L"timestamp", timestamp);
     }
     
     if(type == "hotp"){
@@ -137,62 +203,366 @@ void OTP_Generate(PA_PluginParameters params) {
         }
         
         ob_set_n(returnValue, L"counter", counter);
+    }
         
-        const int max10 = sizeof(powers10) / sizeof(*powers10);
-        const int max16 = 8;
-        
-        u_char tosign[8];
-        
-        for (int i = sizeof(tosign) - 1; i >= 0; i--) {
-                tosign[i] = counter & 0xff;
-                counter >>= 8;
-            }
-
-        u_int hash_len;
-        u_char hash[EVP_MAX_MD_SIZE];
-        
-        /* Compute HMAC */
-        HMAC(evp_md,
-             base32_secret.c_str(),
-             (int)base32_secret.length(),
-             tosign,
-             sizeof(tosign), hash, &hash_len);
-        
-        /* Extract selected bytes to get 32 bit integer value */
-        int offset = hash[hash_len - 1] & 0x0f;
-        int value = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16)
-        | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
-        
-        snprintf(&buf[0], buf.size(), "%0*d", digits < max10 ? digits : max10,
-                 digits < max10 ? value % powers10[digits - 1] : value);
-        
-        otp = (const char *)&buf[0];
-        ob_set_s(returnValue, L"otp", otp.c_str());
-        
+    u_char tosign[8];
+    
+    for (int i = sizeof(tosign) - 1; i >= 0; i--) {
+        tosign[i] = counter & 0xff;
+        counter >>= 8;
+    }
+    
+    u_int hash_len;
+    u_char hash[EVP_MAX_MD_SIZE];
+    
+    /* Compute HMAC */
+    HMAC(evp_md,
+         base32_secret.c_str(),
+         (int)base32_secret.length(),
+         tosign,
+         sizeof(tosign), hash, &hash_len);
+    
+    /* Extract selected bytes to get 32 bit integer value */
+    int offset = hash[hash_len - 1] & 0x0f;
+    int value = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16)
+    | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
+    
+    snprintf(&buf[0], buf.size(), "%0*d", digits < max10 ? digits : max10,
+             digits < max10 ? value % powers10[digits - 1] : value);
+    
+    otp = (const char *)&buf[0];
+    ob_set_s(returnValue, L"otp", otp.c_str());
+    
+    url+=type;
+    url+="/";
+    
+    if(label.length()){
+        ob_set_s(returnValue, L"label", label.c_str());
+        size_t len = label.length() * 3 + 1;
+        std::vector<char>buf(len+1);
+        uri_encode(label.c_str(), label.length(),  &buf[0]);
+        url+=std::string((const char *)&buf[0]);
+    }
+    
+    bool joined = false;
+    
+    if(issuer.length()){
+        url+= joined ? "" : "?";
+        joined = true;
+        url+="issuer=";
+        size_t len = issuer.length() * 3 + 1;
+        std::vector<char>buf(len+1);
+        uri_encode(issuer.c_str(), issuer.length(),  &buf[0]);
+        url+=std::string((const char *)&buf[0]);
+    }
+    
+    if(base32_secret.length()){
+        url+= joined ? "&" : "?";
+        joined = true;
+        url+="secret=";
+        url+=base32_secret;
+    }
+    
+    if(algorithm.length()){
+        url+= joined ? "&" : "?";
+        joined = true;
+        url+="algorithm=";
+        url+=algorithm;
     }
 
+    if(digits){
+        url+= joined ? "&" : "?";
+        joined = true;
+        url+="digits=";
+        snprintf(&buf[0], buf.size(), "%d", digits);
+        url+=(const char *)&buf[0];
+    }
+    
+    if(type == "hotp"){
+        url+= joined ? "&" : "?";
+        joined = true;
+        url+="counter=";
+        std::vector<char>buf(11);
+        snprintf(&buf[0], buf.size(), "%llu", counter);
+        url+=(const char *)&buf[0];
+    }
+    
+    if(type == "totp"){
+        url+= joined ? "&" : "?";
+        joined = true;
+        url+="period=";
+        std::vector<char>buf(11);
+        snprintf(&buf[0], buf.size(), "%d", period);
+        url+=(const char *)&buf[0];
+    }
+    
+    ob_set_s(returnValue, L"url", url.c_str());
+    
+    if(ob_is_defined(options, L"level")) {
+        intValue = ob_get_n(options, L"level");
+        if((intValue <= QR_ECLEVEL_H) & (intValue >= QR_ECLEVEL_L)){
+            level = (QRecLevel)intValue;
+        }
+    }
+    
+    if(ob_is_defined(options, L"margin")) {
+        intValue = ob_get_n(options, L"margin");
+        if(margin >= 0){
+            margin = intValue;
+        }
+    }
+    
+    if(ob_is_defined(options, L"dpi")) {
+        intValue = ob_get_n(options, L"dpi");
+        if(dpi > 0){
+            dpi = intValue;
+        }
+    }
+    
+    if(ob_is_defined(options, L"version")) {
+        intValue = ob_get_n(options, L"version");
+        if(version > 0){
+            version = intValue;
+        }
+    }
+    
+    if(ob_is_defined(options, L"size")) {
+        intValue = ob_get_n(options, L"size");
+        if(size > 0){
+            size = intValue;
+        }
+    }
+
+    if(ob_is_defined(options, L"format")) {
+        if(ob_get_s(options, L"format", &stringValue)) {
+            if(stringValue == (const uint8_t *)".svg"){
+                qr_type = QR_OUTPUT_SVG;
+            }
+        }
+    }
+    
+    QRcode *qr = QRcode_encodeData((int)url.length(),
+                                   (const unsigned char *)url.c_str(),
+                                   version,
+                                   level);
+    if(qr){
+        switch(qr_type){
+            case QR_OUTPUT_PNG:
+            toPNG(qr, margin, size, dpi, returnValue);
+            break;
+            
+            case QR_OUTPUT_SVG:
+            toSVG(qr, margin, size, dpi, returnValue);
+            break;
+        }
+        QRcode_free(qr);
+    }
+    
+    
     PA_ReturnObject(params, returnValue);
 }
 
-static uint64_t get_current_time() {
+void write_data_fn(png_structp png_ptr, png_bytep buf, png_size_t size) {
+    C_BLOB *blob = (C_BLOB *)png_get_io_ptr(png_ptr);
+    blob->addBytes((const uint8_t *)buf, (uint32_t)size);
+}
+
+void output_flush_fn(png_structp png_ptr)
+{
     
-    uint64_t milliseconds = 0;
+}
+
+static void toSVG(QRcode *qr, int margin, int size, int dpi, PA_ObjectRef o) {
     
-#if defined(_WIN32)
-    FILETIME fileTime;
-    GetSystemTimeAsFileTime(&fileTime);
+    margin = margin * size;
     
-    ULARGE_INTEGER largeInteger;
-    largeInteger.LowPart = fileTime.dwLowDateTime;
-    largeInteger.HighPart = fileTime.dwHighDateTime;
+    char _size[33];
+    sprintf(_size, "%d", size);
     
-    milliseconds = (largeInteger.QuadPart - 116444736000000000ULL) / 10000;
-#else
-    struct timeval sys_time;
-    gettimeofday(&sys_time, NULL);
+    char _width[33];
+    sprintf(_width, "%d", margin + (qr->width * size) + margin);
     
-    milliseconds = sys_time.tv_sec * 1000 + sys_time.tv_usec / 1000;
-#endif
+    char _dpi[33];
+    sprintf(_dpi, "%d", dpi);
     
-    return milliseconds;
+    char _margin[33];
+    sprintf(_margin, "%d", margin);
+    
+    char _x[33];
+    char _y[33];
+    
+    std::string svg;
+    
+    svg += "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
+    svg += "<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 ";
+    svg += _width;
+    svg += " ";
+    svg += _width;
+    svg += "\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:ns4d=\"http://www.4d.com\" ns4d:DPI=\"";
+    svg += _dpi;
+    svg += "\">\n";
+    svg += "<g shape-rendering=\"crispEdges\" stroke-width=\"0\" stroke=\"none\" transform=\"translate(";
+    svg += _margin;
+    svg += ",";
+    svg += _margin;
+    svg += ")\">\n";
+    
+    unsigned char *p;
+    int x, y = 0, i, j;
+    
+    p = qr->data;
+    
+    for(i = 0; i < qr->width; ++i)
+    {
+        x = 0;
+        sprintf(_y, "%d", y);
+        
+        for(j = 0; j < qr->width; ++j)
+        {
+            sprintf(_x, "%d", x);
+            
+            if(*p&1)
+            {
+                svg += "<rect fill=\"black\" stroke=\"black\" height=\"";
+                svg += _size;
+                svg += "\" width=\"";
+                svg += _size;
+                svg += "\" ";
+            }else{
+                svg += "<rect fill=\"white\" stroke=\"white\" height=\"";
+                svg += _size;
+                svg += "\" width=\"";
+                svg += _size;
+                svg += "\" ";
+            }
+            
+            svg += "x=\"";
+            svg += _x;
+            svg += "\" ";
+            svg += "y=\"";
+            svg += _y;
+            svg += "\" />\n";
+            
+            p++;
+            x = x + size;
+            
+        }
+        y = y + size;
+    }
+    
+    svg += "</g>\n";
+    svg += "</svg>\n";
+    
+    PA_Picture picture = PA_CreatePicture((void *)svg.c_str(), (PA_long32)svg.size());
+    ob_set_p(o, L"qr", picture);
+}
+
+static void toPNG(QRcode *qr, int margin, int size, int dpi, PA_ObjectRef o) {
+    
+    unsigned int fg_color[4] = {0, 0, 0, 255};
+    unsigned int bg_color[4] = {255, 255, 255, 255};
+    
+    png_structp png_ptr;
+    png_infop info_ptr;
+    png_colorp palette;
+    png_byte alpha_values[2];
+    unsigned char *row, *p, *q;
+    int x, y, xx, yy, bit;
+    int realwidth;
+    
+    realwidth = (qr->width + margin * 2) * size;
+    row = (unsigned char *)malloc((realwidth + 7) / 8);
+    if(row != NULL) {
+        
+        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+        if(png_ptr != NULL) {
+            
+            info_ptr = png_create_info_struct(png_ptr);
+            if(info_ptr != NULL) {
+                
+                if(setjmp(png_jmpbuf(png_ptr))) {
+                    png_destroy_write_struct(&png_ptr, &info_ptr);
+                }else{
+                    
+                    palette = (png_colorp) malloc(sizeof(png_color) * 2);
+                    if(palette != NULL) {
+                        
+                        palette[0].red   = fg_color[0];
+                        palette[0].green = fg_color[1];
+                        palette[0].blue  = fg_color[2];
+                        palette[1].red   = bg_color[0];
+                        palette[1].green = bg_color[1];
+                        palette[1].blue  = bg_color[2];
+                        alpha_values[0] = fg_color[3];
+                        alpha_values[1] = bg_color[3];
+                        png_set_PLTE(png_ptr, info_ptr, palette, 2);
+                        png_set_tRNS(png_ptr, info_ptr, alpha_values, 2, NULL);
+                        
+                        C_BLOB png;
+                        
+                        png_set_write_fn(png_ptr, (png_voidp)&png, write_data_fn, output_flush_fn);
+                        
+                        png_set_IHDR(png_ptr, info_ptr,
+                                     realwidth, realwidth,
+                                     1,
+                                     PNG_COLOR_TYPE_PALETTE,
+                                     PNG_INTERLACE_NONE,
+                                     PNG_COMPRESSION_TYPE_DEFAULT,
+                                     PNG_FILTER_TYPE_DEFAULT);
+                        png_set_pHYs(png_ptr, info_ptr,
+                                     dpi * INCHES_PER_METER,
+                                     dpi * INCHES_PER_METER,
+                                     PNG_RESOLUTION_METER);
+                        
+                        png_write_info(png_ptr, info_ptr);
+                        
+                        /* top margin */
+                        memset(row, 0xff, (realwidth + 7) / 8);
+                        for(y=0; y<margin * size; y++) {
+                            png_write_row(png_ptr, row);
+                        }
+                        
+                        /* data */
+                        p = qr->data;
+                        for(y=0; y<qr->width; y++) {
+                            bit = 7;
+                            memset(row, 0xff, (realwidth + 7) / 8);
+                            q = row;
+                            q += margin * size / 8;
+                            bit = 7 - (margin * size % 8);
+                            for(x=0; x<qr->width; x++) {
+                                for(xx=0; xx<size; xx++) {
+                                    *q ^= (*p & 1) << bit;
+                                    bit--;
+                                    if(bit < 0) {
+                                        q++;
+                                        bit = 7;
+                                    }
+                                }
+                                p++;
+                            }
+                            for(yy=0; yy<size; yy++) {
+                                png_write_row(png_ptr, row);
+                            }
+                        }
+                        
+                        /* bottom margin */
+                        memset(row, 0xff, (realwidth + 7) / 8);
+                        for(y=0; y<margin * size; y++) {
+                            png_write_row(png_ptr, row);
+                        }
+                        
+                        png_write_end(png_ptr, info_ptr);
+                        png_destroy_write_struct(&png_ptr, &info_ptr);
+                        
+                        free(row);
+                        free(palette);
+                        
+                        PA_Picture picture = PA_CreatePicture((void *)png.getBytesPtr(), png.getBytesLength());
+                        ob_set_p(o, L"qr", picture);
+                    }
+                }
+            }
+        }
+    }
 }

@@ -6,6 +6,11 @@
             "theme": "OTP",
             "syntax": "OTP Generate(&J):J",
             "threadSafe": true
+        },
+        {
+            "theme": "OTP",
+            "syntax": "OTP Random(&L):T",
+            "threadSafe": true
         }
     ]
 }
