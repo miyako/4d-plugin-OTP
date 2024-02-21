@@ -1,4 +1,8 @@
-# 4d-plugin-OTP
+![version](https://img.shields.io/badge/version-20%2B-E23089)
+![platform](https://img.shields.io/static/v1?label=platform&message=mac-intel%20|%20mac-arm%20|%20win-64&color=blue)
+[![license](https://img.shields.io/github/license/miyako/4d-plugin-OTP)](LICENSE)
+![downloads](https://img.shields.io/github/downloads/miyako/4d-plugin-OTP/total)
+
 OTP.
 
 * [RFC 6238 Time-Based One-Time Password Algorithm](https://www.ietf.org/rfc/rfc6238.txt)
