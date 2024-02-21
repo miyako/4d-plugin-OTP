@@ -16,7 +16,7 @@ $status:=OTP Generate($params)
 ```
 
 |key|type||
-|:-:|:-:|:-:|
+|:-:|:-:|:-|
 |secret|Text||
 |type|Text|totp(default), hotp|
 |algorithm|Text|SHA1(default), SHA256, SHA512|
