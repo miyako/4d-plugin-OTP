@@ -1,6 +1,10 @@
 # 4d-plugin-OTP
 OTP.
 
+* [RFC 6238 Time-Based One-Time Password Algorithm](https://www.ietf.org/rfc/rfc6238.txt)
+* [RFC 4226 HMAC-Based One-Time Password Algorithm](https://www.ietf.org/rfc/rfc4226.txt)
+* Generate QRCODE in .png or .svg format
+
 **hotp** code based on [archiecobbs/mod-authn-otp](https://github.com/archiecobbs/mod-authn-otp/tree/master)
 
 # TOTP
