@@ -65,7 +65,7 @@ void OTP_Generate(PA_PluginParameters params) {
     uint64_t counter        = 0;
     std::string algorithm   = "SHA1";
     const EVP_MD *evp_md = EVP_sha1();
-    
+    uint64_t _counter = counter;
     std::string secret;
     std::string base32_secret;
     std::string issuer;
@@ -201,7 +201,7 @@ void OTP_Generate(PA_PluginParameters params) {
                 counter = intValue;
             }
         }
-        
+        _counter = counter;
         ob_set_n(returnValue, L"counter", counter);
     }
         
@@ -283,7 +283,8 @@ void OTP_Generate(PA_PluginParameters params) {
         joined = true;
         url+="counter=";
         std::vector<char>buf(11);
-        snprintf(&buf[0], buf.size(), "%llu", ob_get_n(returnValue, L"counter"));
+        counter = (uint64_t)_counter;
+        snprintf(&buf[0], buf.size(), "%llu", counter);
         url+=(const char *)&buf[0];
     }
     
