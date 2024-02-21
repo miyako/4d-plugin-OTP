@@ -27,6 +27,17 @@ ASSERT($status.otp="912647")
 |period|Integer|30(default), totp only|
 |counter|Integer|0(default), hotp only|
 
+* QR code options
+
+|key|type||
+|:-:|:-:|:-|
+|format|Text|.png(default), .svg|
+|size|Integer|3(default)|
+|dpi|Integer|72(default)|
+|margin|Integer|0(default)|
+|version|Integer|1(default)|
+|level|Integer|0=L(default), 1=M, 2=Q, 3=H|
+
 # Acknowledgements
 
 * [BASE32](https://github.com/mjg59/tpmtotp/blob/master/base32.h) by Adrien Kunysz
