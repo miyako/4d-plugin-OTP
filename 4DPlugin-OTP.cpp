@@ -308,7 +308,7 @@ void OTP_Generate(PA_PluginParameters params) {
     
     if(ob_is_defined(options, L"margin")) {
         intValue = ob_get_n(options, L"margin");
-        if(margin >= 0){
+        if(intValue >= 0){
             margin = intValue;
         }
     }
