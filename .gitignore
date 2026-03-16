@@ -7,3 +7,5 @@ test/Project/DerivedData/*
 Objs/*
 .vs/*
 test/Data/*
+test/Plugins/OTP.bundle/Contents/Windows64/OTP.exp
+test/Plugins/OTP.bundle/Contents/Windows64/OTP.lib
