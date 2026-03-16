@@ -282,7 +282,7 @@ void OTP_Generate(PA_PluginParameters params) {
         url+= joined ? "&" : "?";
         joined = true;
         url+="counter=";
-        std::vector<char>buf(11);
+        std::vector<char>buf(21);
         counter = (uint64_t)_counter;
         snprintf(&buf[0], buf.size(), "%llu", counter);
         url+=(const char *)&buf[0];
