@@ -142,8 +142,6 @@ void OTP_Generate(PA_PluginParameters params) {
     }
     
     ob_set_s(returnValue, L"algorithm", algorithm.c_str());
-
-    ob_set_s(returnValue, L"algorithm", algorithm.c_str());
     
     int intValue;
     
@@ -182,9 +180,9 @@ void OTP_Generate(PA_PluginParameters params) {
         time_t timestamp = time(NULL);
         
         if(ob_is_defined(options, L"timestamp")) {
-            intValue = ob_get_n(options, L"timestamp");
-            if(intValue > 0){
-                timestamp = intValue;
+            uint64_t uint64Value = ob_get_n(options, L"timestamp");
+            if(uint64Value > 0){
+                timestamp = uint64Value;
             }
         }
 
@@ -196,9 +194,9 @@ void OTP_Generate(PA_PluginParameters params) {
     if(type == "hotp"){
         
         if(ob_is_defined(options, L"counter")) {
-            intValue = ob_get_n(options, L"counter");
-            if(intValue > 0){
-                counter = intValue;
+            uint64_t uint64Value = ob_get_n(options, L"counter");
+            if(uint64Value > 0){
+                counter = uint64Value;
             }
         }
         _counter = counter;
@@ -215,10 +213,20 @@ void OTP_Generate(PA_PluginParameters params) {
     u_int hash_len;
     u_char hash[EVP_MAX_MD_SIZE];
     
+    
+    // Decode base32_secret → raw binary
+    size_t decoded_len = BASE32_DECODE_LEN(base32_secret.length());
+    std::vector<unsigned char> decoded_secret(decoded_len);
+    
+    size_t actual_len = base32_decode(
+                                      (const unsigned char *)base32_secret.c_str(),
+                                      &decoded_secret[0]
+                                      );
+        
     /* Compute HMAC */
     HMAC(evp_md,
-         base32_secret.c_str(),
-         (int)base32_secret.length(),
+         &decoded_secret[0],   // ← correct: raw binary key
+         (int)actual_len,
          tosign,
          sizeof(tosign), hash, &hash_len);
     

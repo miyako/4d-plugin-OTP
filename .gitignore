@@ -6,3 +6,4 @@ OTP.xcodeproj/xcshareddata/*
 test/Project/DerivedData/*
 Objs/*
 .vs/*
+test/Data/*
