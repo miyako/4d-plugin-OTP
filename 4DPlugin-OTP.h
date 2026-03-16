@@ -32,6 +32,8 @@
 #    include <sys/time.h>
 #endif
 
+#define BASE32_DECODE_LEN(n)  ((n) * 5 / 8)
+
 #pragma mark -
 
 void OTP_Generate(PA_PluginParameters params);
