@@ -92,7 +92,7 @@ void OTP_Generate(PA_PluginParameters params) {
     CUTF8String stringValue;
     
     if(ob_is_defined(options, L"secret")) {
-        if(ob_get_s(options, L"secret", &stringValue)) {
+        if(ob_get_a(options, L"secret", &stringValue)) {
             if(stringValue.length()){
                 secret = std::string((const char *)stringValue.c_str(), stringValue.length());
                 size_t len = BASE32_LEN(secret.length());
@@ -102,7 +102,7 @@ void OTP_Generate(PA_PluginParameters params) {
             }
         }
     }else if(ob_is_defined(options, L"base32_secret")) {
-        if(ob_get_s(options, L"base32_secret", &stringValue)) {
+        if(ob_get_a(options, L"base32_secret", &stringValue)) {
             base32_secret = (const char *)stringValue.c_str();
         }
     }
@@ -110,7 +110,7 @@ void OTP_Generate(PA_PluginParameters params) {
     ob_set_s(returnValue, L"base32_secret", base32_secret.c_str());
     
     if(ob_is_defined(options, L"account")) {
-        if(ob_get_s(options, L"account", &stringValue)) {
+        if(ob_get_a(options, L"account", &stringValue)) {
             account = (const char *)stringValue.c_str();
             ob_set_s(returnValue, L"account", account.c_str());
             label = account;
@@ -118,7 +118,7 @@ void OTP_Generate(PA_PluginParameters params) {
     }
         
     if(ob_is_defined(options, L"issuer")) {
-        if(ob_get_s(options, L"issuer", &stringValue)) {
+        if(ob_get_a(options, L"issuer", &stringValue)) {
             issuer = (const char *)stringValue.c_str();
             ob_set_s(returnValue, L"issuer", issuer.c_str());
             if(account.length()){
@@ -128,7 +128,7 @@ void OTP_Generate(PA_PluginParameters params) {
     }
     
     if(ob_is_defined(options, L"type")) {
-        if(ob_get_s(options, L"type", &stringValue)) {
+        if(ob_get_a(options, L"type", &stringValue)) {
             if(stringValue == (const uint8_t *)"hotp"){
                 type = "hotp";
             }
@@ -138,7 +138,7 @@ void OTP_Generate(PA_PluginParameters params) {
     ob_set_s(returnValue, L"type", type.c_str());
     
     if(ob_is_defined(options, L"algorithm")) {
-        if(ob_get_s(options, L"algorithm", &stringValue)) {
+        if(ob_get_a(options, L"algorithm", &stringValue)) {
             if(stringValue == (const uint8_t *)"SHA256"){
                 algorithm = "SHA256";
                 evp_md = EVP_sha256();
@@ -374,7 +374,7 @@ void OTP_Generate(PA_PluginParameters params) {
     }
 
     if(ob_is_defined(options, L"format")) {
-        if(ob_get_s(options, L"format", &stringValue)) {
+        if(ob_get_a(options, L"format", &stringValue)) {
             if(stringValue == (const uint8_t *)".svg"){
                 qr_type = QR_OUTPUT_SVG;
             }
