@@ -40,17 +40,25 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 
 void OTP_Random(PA_PluginParameters params) {
     
+    const PA_long32 kMaxRandomBytes = 4096; // sane upper bound to avoid unbounded allocation
+    
     PA_long32 len = PA_GetLongParameter(params, 1);
     len = len > 0 ? len : 20;
+    if(len > kMaxRandomBytes){
+        len = kMaxRandomBytes;
+    }
     std::vector<unsigned char>buf(len);
+    C_TEXT t; // defaults to an empty string if RAND_bytes fails below
     if (RAND_bytes(&buf[0], len) == 1){
         std::vector<unsigned char>str(BASE32_LEN(len)+1);
         base32_encode(&buf[0], buf.size(), &str[0]);
         CUTF8String u8 = &str[0];
-        C_TEXT t;
         t.setUTF8String(&u8);
-        PA_ReturnString(params, (PA_Unichar *)t.getUTF16StringPtr());
     }
+    // Always return, even on RAND_bytes failure -- the command is declared
+    // with a return value in manifest.json, so the host would otherwise hang
+    // waiting for a return that never arrives.
+    PA_ReturnString(params, (PA_Unichar *)t.getUTF16StringPtr());
 }
 
 void OTP_Generate(PA_PluginParameters params) {
@@ -145,9 +153,15 @@ void OTP_Generate(PA_PluginParameters params) {
     
     int intValue;
     
+    const int max10 = sizeof(powers10) / sizeof(*powers10);
+    
     if(ob_is_defined(options, L"digits")) {
         intValue = ob_get_n(options, L"digits");
-        if(intValue > 0){
+        // max10 is the real ceiling: powers10[] only has entries up to
+        // max10 digits, and the digits used for output are capped there
+        // further down anyway -- clamp here too so the buffer allocation
+        // below can never be sized from an unbounded/garbage value.
+        if(intValue > 0 && intValue <= max10){
             digits = intValue;
         }
     }
@@ -155,7 +169,6 @@ void OTP_Generate(PA_PluginParameters params) {
     ob_set_n(returnValue, L"digits", digits);
     
     std::vector<char>buf(digits+1);
-    const int max10 = sizeof(powers10) / sizeof(*powers10);
     
     if(type == "totp"){
         
@@ -210,30 +223,41 @@ void OTP_Generate(PA_PluginParameters params) {
         counter >>= 8;
     }
     
-    u_int hash_len;
+    u_int hash_len = 0;
     u_char hash[EVP_MAX_MD_SIZE];
+    int value = 0;
     
-    
-    // Decode base32_secret → raw binary
-    size_t decoded_len = BASE32_DECODE_LEN(base32_secret.length());
-    std::vector<unsigned char> decoded_secret(decoded_len);
-    
-    size_t actual_len = base32_decode(
-                                      (const unsigned char *)base32_secret.c_str(),
-                                      &decoded_secret[0]
-                                      );
+    // Guard against no secret / base32_secret ever having been supplied --
+    // an empty base32_secret would otherwise size decoded_secret to 0 and
+    // take the address of a non-existent element (UB) below.
+    if(base32_secret.length()){
         
-    /* Compute HMAC */
-    HMAC(evp_md,
-         &decoded_secret[0],   // ← correct: raw binary key
-         (int)actual_len,
-         tosign,
-         sizeof(tosign), hash, &hash_len);
-    
-    /* Extract selected bytes to get 32 bit integer value */
-    int offset = hash[hash_len - 1] & 0x0f;
-    int value = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16)
-    | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
+        // Decode base32_secret → raw binary
+        size_t decoded_len = BASE32_DECODE_LEN(base32_secret.length());
+        std::vector<unsigned char> decoded_secret(decoded_len);
+        
+        size_t actual_len = base32_decode(
+                                          (const unsigned char *)base32_secret.c_str(),
+                                          &decoded_secret[0]
+                                          );
+        
+        /* Compute HMAC */
+        unsigned char *hmac_result = HMAC(evp_md,
+             &decoded_secret[0],   // ← correct: raw binary key
+             (int)actual_len,
+             tosign,
+             sizeof(tosign), hash, &hash_len);
+        
+        /* Extract selected bytes to get 32 bit integer value, but only if
+           HMAC actually succeeded -- otherwise hash/hash_len are left
+           untouched and hash_len stays at its initialized 0 from above,
+           which the offset/value computation below treats as "no OTP". */
+        if(hmac_result != NULL && hash_len > 0){
+            int offset = hash[hash_len - 1] & 0x0f;
+            value = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16)
+            | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff);
+        }
+    }
     
     snprintf(&buf[0], buf.size(), "%0*d", digits < max10 ? digits : max10,
              digits < max10 ? value % powers10[digits - 1] : value);
@@ -314,30 +338,37 @@ void OTP_Generate(PA_PluginParameters params) {
         }
     }
     
+    const int kMaxMargin = 100; // sane cap; combines with kMaxSize when scaling realwidth
+    
     if(ob_is_defined(options, L"margin")) {
         intValue = ob_get_n(options, L"margin");
-        if(intValue >= 0){
+        if(intValue >= 0 && intValue <= kMaxMargin){
             margin = intValue;
         }
     }
     
+    const int kMaxDpi = 2400; // sane cap, well above any real print/display use
+    
     if(ob_is_defined(options, L"dpi")) {
         intValue = ob_get_n(options, L"dpi");
-        if(dpi > 0){
+        if(intValue > 0 && intValue <= kMaxDpi){
             dpi = intValue;
         }
     }
     
+    const int kMaxVersion = 40; // QR versions run 1-40 per the spec
+    const int kMaxSize = 100;   // sane cap on per-module pixel size
+    
     if(ob_is_defined(options, L"version")) {
         intValue = ob_get_n(options, L"version");
-        if(version > 0){
+        if(intValue > 0 && intValue <= kMaxVersion){
             version = intValue;
         }
     }
     
     if(ob_is_defined(options, L"size")) {
         intValue = ob_get_n(options, L"size");
-        if(size > 0){
+        if(intValue > 0 && intValue <= kMaxSize){
             size = intValue;
         }
     }
